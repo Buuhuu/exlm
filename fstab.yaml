@@ -1,5 +1,5 @@
 mountpoints:
   /:
-    url: "https://author-p130360-e1272151.adobeaemcloud.com/bin/franklin.delivery/buuhuu/exlm/main"
+    url: "https://245265-xwalk-dirk.adobeioruntime.net/api/v1/web/main/convert"
     type: "markup"
     suffix: ".html"
