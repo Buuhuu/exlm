@@ -1,5 +1,5 @@
 mountpoints:
   /:
-    url: https://51837-exlmconverter-dev.adobeioruntime.net/api/v1/web/main/convert
-    type: markup
-    suffix: '.md'
+    url: "https://author-p130360-e1272151.adobeaemcloud.com/bin/franklin.delivery/buuhuu/exlm/main"
+    type: "markup"
+    suffix: ".html"
