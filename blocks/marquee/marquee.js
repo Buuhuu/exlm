@@ -74,13 +74,14 @@ export default async function decorate(block) {
   }
 
   // fetch user auth to toggle hide signin button
+  setTimeout(() => 
   import('../../scripts/data-service/profile-service.js')
     .then((module) => module.isSignedInUser())
     .then((isSignedInUser) => {
       if (!isSignedInUser) {
         block.classList.add('unauthenticated');
       }
-    });
+    }), 5000);
 
   decorateIcons(marqueeDOM);
   block.append(marqueeDOM);
