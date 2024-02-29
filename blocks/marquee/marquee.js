@@ -79,6 +79,7 @@ export default async function decorate(block) {
     .then((isSignedInUser) => {
       if (!isSignedInUser) {
         block.classList.add('unauthenticated');
+        block.querySelector('.signin').addEventListener('click', () => window.adobeIMS.signIn());
       }
     });
 
