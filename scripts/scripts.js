@@ -261,6 +261,33 @@ export function decorateExternalLinks(main) {
 }
 
 /**
+ * Links that have urls with JSON the hash, the JSON will be translated to attributes
+ * eg <a href="https://example.com#{"target":"_blank", "auth-only": "true"}">link</a>
+ * will be translated to <a href="https://example.com" target="_blank" auth-only="true">link</a>
+ * @param {HTMLElement} block
+ */
+export const decorateLinks = (block) => {
+  const links = block.querySelectorAll('a');
+  links.forEach((link) => {
+    const decodedHref = decodeURIComponent(link.getAttribute('href'));
+    const firstCurlyIndex = decodedHref.indexOf('{');
+    const lastCurlyIndex = decodedHref.lastIndexOf('}');
+    if (firstCurlyIndex > -1 && lastCurlyIndex > -1) {
+      // everything between curly braces is treated as JSON string.
+      const optionsJsonStr = decodedHref.substring(firstCurlyIndex, lastCurlyIndex + 1);
+      const fixedJsonString = optionsJsonStr.replace(/'/g, '"'); // JSON.parse function expects JSON strings to be formatted with double quotes
+      const parsedJSON = JSON.parse(fixedJsonString);
+      Object.entries(parsedJSON).forEach(([key, value]) => {
+        link.setAttribute(key.trim(), value);
+      });
+      // remove the JSON string from the hash, if JSON string is the only thing in the hash, remove the hash as well.
+      const endIndex = decodedHref.charAt(firstCurlyIndex - 1) === '#' ? firstCurlyIndex - 1 : firstCurlyIndex;
+      link.href = decodedHref.substring(0, endIndex);
+    }
+  });
+};
+
+/**
  * Check if current page is a MD Docs Page.
  * theme = docs is set in bulk metadata for docs paths.
  * @param {string} type The type of doc page - example: docs-solution-landing,
@@ -310,7 +337,7 @@ export function decorateAnchors(main) {
   const anchorIcons = [...main.querySelectorAll(`.icon-headding-anchor`)];
   anchorIcons.forEach((icon) => {
     const slugNode = icon.nextSibling;
-    const slug = slugNode.textContent;
+    const slug = slugNode?.textContent?.trim();
     if (slug) {
       icon.parentElement.id = slug;
       icon.remove();
@@ -376,6 +403,9 @@ export const locales = new Map([
   ['ko', 'ko_KO'],
   ['pt-BR', 'pt_BR'],
   ['zh-Hans', 'zh_HANS'],
+  ['zh-Hant', 'zh_HANT'],
+  ['nl', 'nl_NL'],
+  ['sv', 'sv_SE'],
 ]);
 
 export async function loadIms() {
@@ -411,8 +441,9 @@ const loadMartech = async (headerPromise, footerPromise) => {
   } else {
     launchScriptSrc = 'https://assets.adobedtm.com/a7d65461e54e/6e9802a06173/launch-e6bd665acc0a-development.min.js';
   }
+  oneTrust();
 
-  const oneTrustPromise = loadScript(`/scripts/analytics/privacy-standalone.js`, {
+  const oneTrustPromise = loadScript('/etc.clientlibs/globalnav/clientlibs/base/privacy-standalone.js', {
     async: true,
     defer: true,
   });
@@ -426,7 +457,6 @@ const loadMartech = async (headerPromise, footerPromise) => {
     ([launch, libAnalyticsModule, headPr, footPr]) => {
       const { lang } = getPathDetails();
       const { pageLoadModel, linkClickModel, pageName } = libAnalyticsModule;
-      oneTrust();
       document.querySelector('[href="#onetrust"]').addEventListener('click', (e) => {
         e.preventDefault();
         window.adobePrivacy.showConsentPopup();
