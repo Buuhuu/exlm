@@ -16,6 +16,8 @@ import {
   getMetadata,
   loadScript,
   fetchPlaceholders,
+  toCamelCase,
+  toClassName,
 } from './lib-franklin.js';
 // eslint-disable-next-line import/no-cycle
 
@@ -26,7 +28,29 @@ const libAnalyticsModulePromise = import('./analytics/lib-analytics.js');
 
 const LCP_BLOCKS = ['marquee']; // add your LCP blocks to the list
 
+const AUDIENCES = {
+  mobile: () => window.innerWidth < 600,
+  desktop: () => window.innerWidth >= 600,
+  // define your custom audiences here as needed
+};
+
 export const timers = new Map();
+
+/**
+ * Gets all the metadata elements that are in the given scope.
+ * @param {String} scope The scope/prefix for the metadata
+ * @returns an array of HTMLElement nodes that match the given scope
+ */
+export function getAllMetadata(scope) {
+  return [...document.head.querySelectorAll(`meta[property^="${scope}:"],meta[name^="${scope}-"]`)]
+    .reduce((res, meta) => {
+      const id = toClassName(meta.name
+        ? meta.name.substring(scope.length + 1)
+        : meta.getAttribute('property').split(':')[1]);
+      res[id] = meta.getAttribute('content');
+      return res;
+    }, {});
+}
 
 // eslint-disable-next-line
 export function debounce(id = '', fn = () => void 0, ms = 250) {
@@ -672,8 +696,25 @@ async function loadDefaultModule(jsPath) {
 }
 
 async function loadPage() {
+  // Define an execution context
+  const pluginContext = {
+    getAllMetadata,
+    getMetadata,
+    loadCSS,
+    loadScript,
+    sampleRUM,
+    toCamelCase,
+    toClassName,
+  };
+  // eslint-disable-next-line import/no-relative-packages
+  const experimentation = await import('../plugins/experimentation/src/index.js');
+  const enableExperimentation = getMetadata('experiment')
+    || Object.keys(getAllMetadata('campaign')).length
+    || Object.keys(getAllMetadata('audience')).length;
+  if (enableExperimentation) await experimentation.loadEager(document, { audiences: AUDIENCES }, pluginContext);
   await loadEager(document);
   await loadLazy(document);
+  if (enableExperimentation) experimentation.loadLazy(document, { audiences: AUDIENCES }, pluginContext);
   loadRails();
   loadDelayed();
   showBrowseBackgroundGraphic();
