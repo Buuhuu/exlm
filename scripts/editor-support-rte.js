@@ -60,12 +60,7 @@ export function decorateRichtext(container = document) {
   }
 }
 
-const observer = new MutationObserver((mutations) => {
-  console.log(mutations);
-});
-observer.observe(document, { 
-  attributeFilter: [ 'data-richtext-prop' ],
-  subtree: true,
-});
+const observer = new MutationObserver(decorateRichtext);
+observer.observe(document, { attributeFilter: [ 'data-richtext-prop' ], subtree: true });
 
 decorateRichtext();
