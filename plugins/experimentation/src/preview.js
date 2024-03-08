@@ -28,11 +28,14 @@ function createButton(label) {
 }
 
 function createPopupItem(item) {
-  const actions = typeof item === 'object'
-    ? item.actions.map((action) => (action.href
-      ? `<div class="hlx-button"><a href="${action.href}">${action.label}</a></div>`
-      : `<div class="hlx-button"><a href="#">${action.label}</a></div>`))
-    : [];
+  const actions =
+    typeof item === 'object'
+      ? item.actions.map((action) =>
+          action.href
+            ? `<div class="hlx-button"><a href="${action.href}">${action.label}</a></div>`
+            : `<div class="hlx-button"><a href="#">${action.label}</a></div>`,
+        )
+      : [];
   const div = document.createElement('div');
   div.className = `hlx-popup-item${item.isSelected ? ' is-selected' : ''}`;
   div.innerHTML = `
@@ -49,11 +52,14 @@ function createPopupItem(item) {
 }
 
 function createPopupDialog(header, items = []) {
-  const actions = typeof header === 'object'
-    ? (header.actions || []).map((action) => (action.href
-      ? `<div class="hlx-button"><a href="${action.href}">${action.label}</a></div>`
-      : `<div class="hlx-button"><a href="#">${action.label}</a></div>`))
-    : [];
+  const actions =
+    typeof header === 'object'
+      ? (header.actions || []).map((action) =>
+          action.href
+            ? `<div class="hlx-button"><a href="${action.href}">${action.label}</a></div>`
+            : `<div class="hlx-button"><a href="#">${action.label}</a></div>`,
+        )
+      : [];
   const popup = document.createElement('div');
   popup.className = 'hlx-popup hlx-hidden';
   popup.innerHTML = `
@@ -195,11 +201,12 @@ async function fetchRumData(experiment, options) {
     return null;
   }
 
-  const numberify = (obj) => Object.entries(obj).reduce((o, [k, v]) => {
-    o[k] = Number.parseFloat(v);
-    o[k] = Number.isNaN(o[k]) ? v : o[k];
-    return o;
-  }, {});
+  const numberify = (obj) =>
+    Object.entries(obj).reduce((o, [k, v]) => {
+      o[k] = Number.parseFloat(v);
+      o[k] = Number.isNaN(o[k]) ? v : o[k];
+      return o;
+    }, {});
 
   const variantsAsNums = data.map(numberify);
   const totals = Object.entries(
@@ -228,30 +235,36 @@ async function fetchRumData(experiment, options) {
       ...v,
       allocation_rate: v.variant_experimentations / totals.total_experimentations,
     }))
-    .reduce((o, v) => {
-      const variantName = v.variant;
-      o[variantName] = v;
-      return o;
-    }, {
-      control: {
-        variant: 'control',
-        ...Object.entries(variantsAsNums[0]).reduce((k, v) => {
-          const [key, val] = v;
-          if (key.startsWith('control_')) {
-            k[key.replace(/^control_/, 'variant_')] = val;
-          }
-          return k;
-        }, {}),
+    .reduce(
+      (o, v) => {
+        const variantName = v.variant;
+        o[variantName] = v;
+        return o;
       },
-    });
-  const winner = variantsAsNums.reduce((w, v) => {
-    if (v.variant_conversion_rate > w.conversion_rate && v.p_value < 0.05) {
-      w.conversion_rate = v.variant_conversion_rate;
-      w.p_value = v.p_value;
-      w.variant = v.variant;
-    }
-    return w;
-  }, { variant: 'control', p_value: 1, conversion_rate: 0 });
+      {
+        control: {
+          variant: 'control',
+          ...Object.entries(variantsAsNums[0]).reduce((k, v) => {
+            const [key, val] = v;
+            if (key.startsWith('control_')) {
+              k[key.replace(/^control_/, 'variant_')] = val;
+            }
+            return k;
+          }, {}),
+        },
+      },
+    );
+  const winner = variantsAsNums.reduce(
+    (w, v) => {
+      if (v.variant_conversion_rate > w.conversion_rate && v.p_value < 0.05) {
+        w.conversion_rate = v.variant_conversion_rate;
+        w.p_value = v.p_value;
+        w.variant = v.variant;
+      }
+      return w;
+    },
+    { variant: 'control', p_value: 1, conversion_rate: 0 },
+  );
 
   return {
     richVariants,
@@ -261,14 +274,16 @@ async function fetchRumData(experiment, options) {
   };
 }
 
-function populatePerformanceMetrics(div, config, {
-  richVariants, totals, variantsAsNums, winner,
-}) {
+function populatePerformanceMetrics(div, config, { richVariants, totals, variantsAsNums, winner }) {
   // add summary
   const summary = div.querySelector('.hlx-info');
-  summary.innerHTML = `Showing results for ${bigcountformat.format(totals.total_experimentations)} visits and ${bigcountformat.format(totals.total_conversions)} conversions: `;
+  summary.innerHTML = `Showing results for ${bigcountformat.format(
+    totals.total_experimentations,
+  )} visits and ${bigcountformat.format(totals.total_conversions)} conversions: `;
   if (totals.total_conversion_events < 500 && winner.p_value > 0.05) {
-    summary.innerHTML += ` not yet enough data to determine a winner. Keep going until you get ${bigcountformat.format((500 * totals.total_experimentations) / totals.total_conversion_events)} visits.`;
+    summary.innerHTML += ` not yet enough data to determine a winner. Keep going until you get ${bigcountformat.format(
+      (500 * totals.total_experimentations) / totals.total_conversion_events,
+    )} visits.`;
   } else if (winner.p_value > 0.05) {
     summary.innerHTML += ' no significant difference between variants. In doubt, stick with <code>control</code>.';
   } else if (winner.variant === 'control') {
@@ -282,9 +297,15 @@ function populatePerformanceMetrics(div, config, {
     const variantDiv = document.querySelectorAll('.hlx-popup-item')[index];
     const percentage = variantDiv.querySelector('.percentage');
     percentage.innerHTML = `
-      <span title="${countformat.format(richVariants[variantName].variant_conversion_events)} real events">${bigcountformat.format(richVariants[variantName].variant_conversions)} clicks</span> /
-      <span title="${countformat.format(richVariants[variantName].variant_experimentation_events)} real events">${bigcountformat.format(richVariants[variantName].variant_experimentations)} visits</span>
-      <span>(${percentformat.format(richVariants[variantName].variant_experimentations / totals.total_experimentations)} split)</span>
+      <span title="${countformat.format(
+        richVariants[variantName].variant_conversion_events,
+      )} real events">${bigcountformat.format(richVariants[variantName].variant_conversions)} clicks</span> /
+      <span title="${countformat.format(
+        richVariants[variantName].variant_experimentation_events,
+      )} real events">${bigcountformat.format(richVariants[variantName].variant_experimentations)} visits</span>
+      <span>(${percentformat.format(
+        richVariants[variantName].variant_experimentations / totals.total_experimentations,
+      )} split)</span>
     `;
   });
 
@@ -296,7 +317,9 @@ function populatePerformanceMetrics(div, config, {
       performance.innerHTML = `
         <span>click rate: ${percentformat.format(result.variant_conversion_rate)}</span>
         <span>vs. ${percentformat.format(result.control_conversion_rate)}</span>
-        <span title="p value: ${result.p_value}" class="significance ${significanceformat.format(result.p_value).replace(/ /, '-')}">${significanceformat.format(result.p_value)}</span>
+        <span title="p value: ${result.p_value}" class="significance ${significanceformat
+          .format(result.p_value)
+          .replace(/ /, '-')}">${significanceformat.format(result.p_value)}</span>
       `;
     }
   });
@@ -331,7 +354,7 @@ async function decorateExperimentPill(overlay, options, context) {
         </div>
         <div class="hlx-info">How is it going?</div>`,
       actions: [
-        ...config.manifest ? [{ label: 'Manifest', href: config.manifest }] : [],
+        ...(config.manifest ? [{ label: 'Manifest', href: config.manifest }] : []),
         {
           label: '<span style="font-size:2em;line-height:1em">⚙</span>',
           onclick: async () => {
@@ -404,11 +427,10 @@ async function decorateCampaignPill(overlay, options, context) {
   const resolvedAudiences = await context.getResolvedAudiences(audiences, options);
   const isActive = forcedAudience
     ? audiences.includes(forcedAudience)
-    : (!resolvedAudiences || !!resolvedAudiences.length);
-  const campaign = (usp.has(options.campaignsQueryParameter)
-    ? context.toClassName(usp.get(options.campaignsQueryParameter))
-    : null)
-    || (usp.has('utm_campaign') ? context.toClassName(usp.get('utm_campaign')) : null);
+    : !resolvedAudiences || !!resolvedAudiences.length;
+  const campaign =
+    (usp.has(options.campaignsQueryParameter) ? context.toClassName(usp.get(options.campaignsQueryParameter)) : null) ||
+    (usp.has('utm_campaign') ? context.toClassName(usp.get('utm_campaign')) : null);
   const pill = createPopupButton(
     `Campaign: ${campaign || 'default'}`,
     {
@@ -455,11 +477,7 @@ async function decorateAudiencesPill(overlay, options, context) {
     return;
   }
 
-  const resolvedAudiences = await context.getResolvedAudiences(
-    Object.keys(audiences),
-    options,
-    context,
-  );
+  const resolvedAudiences = await context.getResolvedAudiences(Object.keys(audiences), options, context);
   const pill = createPopupButton(
     'Audiences',
     {

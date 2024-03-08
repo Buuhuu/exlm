@@ -10,7 +10,7 @@
  * governing permissions and limitations under the License.
  */
 
- .hlx-preview-overlay {
+.hlx-preview-overlay {
   z-index: 999;
   position: fixed;
   bottom: 32px;
@@ -61,7 +61,7 @@
 }
 
 .hlx-badge .hlx-open::after {
-  content: "";
+  content: '';
   display: block;
   box-sizing: border-box;
   position: absolute;
@@ -106,8 +106,8 @@
 .hlx-popup-header {
   display: grid;
   grid-template:
-    "label actions"
-    "description actions"
+    'label actions'
+    'description actions'
     / 1fr min-content;
   background-color: #222;
   border-radius: 16px 16px 0 0;
@@ -156,12 +156,12 @@
 }
 
 .hlx-popup::before {
-  content: "";
+  content: '';
   width: 0;
   height: 0;
   position: absolute;
   border-left: 15px solid transparent;
-  border-right: 15px solid transparent;    
+  border-right: 15px solid transparent;
   border-top: 15px solid #444;
   bottom: -15px;
   right: 30px;
@@ -172,20 +172,20 @@
 }
 
 .hlx-badge.is-active,
-.hlx-badge[aria-pressed="true"] {
+.hlx-badge[aria-pressed='true'] {
   background-color: #280;
 }
 
 .hlx-badge.is-inactive,
-.hlx-badge[aria-pressed="false"] {
+.hlx-badge[aria-pressed='false'] {
   background-color: #fa0f00;
 }
 
 .hlx-popup-item {
   display: grid;
   grid-template:
-    "label actions" 
-    "description actions"
+    'label actions'
+    'description actions'
     / 1fr min-content;
   margin: 16px;
   padding: 16px;

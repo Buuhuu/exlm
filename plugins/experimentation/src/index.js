@@ -61,13 +61,12 @@ export async function getResolvedAudiences(applicableAudiences, options, context
 
   // Otherwise, return the list of audiences that are resolved on the page
   const results = await Promise.all(
-    applicableAudiences
-      .map((key) => {
-        if (options.audiences[key] && typeof options.audiences[key] === 'function') {
-          return options.audiences[key]();
-        }
-        return false;
-      }),
+    applicableAudiences.map((key) => {
+      if (options.audiences[key] && typeof options.audiences[key] === 'function') {
+        return options.audiences[key]();
+      }
+      return false;
+    }),
   );
   return applicableAudiences.filter((_, i) => results[i]);
 }
@@ -79,9 +78,7 @@ export async function getResolvedAudiences(applicableAudiences, options, context
  * @return Returns the path that was loaded or null if the loading failed
  */
 async function replaceInner(path, element) {
-  const plainPath = path.endsWith('/')
-    ? `${path}index.plain.html`
-    : `${path}.plain.html`;
+  const plainPath = path.endsWith('/') ? `${path}index.plain.html` : `${path}.plain.html`;
   try {
     const resp = await fetch(plainPath);
     if (!resp.ok) {
@@ -175,16 +172,15 @@ function parseExperimentConfig(json, context) {
  * @returns `true` if it is valid, `false` otherwise
  */
 export function isValidExperimentationConfig(config) {
-  if (!config.variantNames
-    || !config.variantNames.length
-    || !config.variants
-    || !Object.values(config.variants).length
-    || !Object.values(config.variants).every((v) => (
-      typeof v === 'object'
-      && !!v.blocks
-      && !!v.pages
-      && (v.percentageSplit === '' || !!v.percentageSplit)
-    ))) {
+  if (
+    !config.variantNames ||
+    !config.variantNames.length ||
+    !config.variants ||
+    !Object.values(config.variants).length ||
+    !Object.values(config.variants).every(
+      (v) => typeof v === 'object' && !!v.blocks && !!v.pages && (v.percentageSplit === '' || !!v.percentageSplit),
+    )
+  ) {
     return false;
   }
   return true;
@@ -223,12 +219,7 @@ function inferEmptyPercentageSplits(variants) {
  * @param {string} instantExperiment The list of varaints
  * @returns {object} the experiment manifest
  */
-function getConfigForInstantExperiment(
-  experimentId,
-  instantExperiment,
-  pluginOptions,
-  context,
-) {
+function getConfigForInstantExperiment(experimentId, instantExperiment, pluginOptions, context) {
   const audience = context.getMetadata(`${pluginOptions.experimentsMetaTag}-audience`);
   const config = {
     label: `Instant Experiment: ${experimentId}`,
@@ -243,10 +234,10 @@ function getConfigForInstantExperiment(
 
   const splitString = context.getMetadata(`${pluginOptions.experimentsMetaTag}-split`);
   const splits = splitString
-    // custom split
-    ? splitString.split(',').map((i) => parseInt(i, 10) / 100)
-    // even split fallback
-    : [...new Array(pages.length)].map(() => 1 / (pages.length + 1));
+    ? // custom split
+      splitString.split(',').map((i) => parseInt(i, 10) / 100)
+    : // even split fallback
+      [...new Array(pages.length)].map(() => 1 / (pages.length + 1));
 
   config.variantNames.push('control');
   config.variants.control = {
@@ -267,7 +258,7 @@ function getConfigForInstantExperiment(
     };
   });
   inferEmptyPercentageSplits(Object.values(config.variants));
-  return (config);
+  return config;
 }
 
 /**
@@ -304,9 +295,7 @@ async function getConfigForFullExperiment(experimentId, pluginOptions, context) 
       return null;
     }
     const json = await resp.json();
-    const config = pluginOptions.parser
-      ? pluginOptions.parser(json, context)
-      : parseExperimentConfig(json, context);
+    const config = pluginOptions.parser ? pluginOptions.parser(json, context) : parseExperimentConfig(json, context);
     if (!config) {
       return null;
     }
@@ -326,19 +315,21 @@ function getDecisionPolicy(config) {
   const decisionPolicy = {
     id: 'content-experimentation-policy',
     rootDecisionNodeId: 'n1',
-    decisionNodes: [{
-      id: 'n1',
-      type: 'EXPERIMENTATION',
-      experiment: {
-        id: config.id,
-        identityNamespace: 'ECID',
-        randomizationUnit: 'DEVICE',
-        treatments: Object.entries(config.variants).map(([key, props]) => ({
-          id: key,
-          allocationPercentage: Number(props.percentageSplit) * 100,
-        })),
+    decisionNodes: [
+      {
+        id: 'n1',
+        type: 'EXPERIMENTATION',
+        experiment: {
+          id: config.id,
+          identityNamespace: 'ECID',
+          randomizationUnit: 'DEVICE',
+          treatments: Object.entries(config.variants).map(([key, props]) => ({
+            id: key,
+            allocationPercentage: Number(props.percentageSplit) * 100,
+          })),
+        },
       },
-    }],
+    ],
   };
   return decisionPolicy;
 }
@@ -368,14 +359,13 @@ async function getConfig(experiment, instantExperiment, pluginOptions, context) 
     pluginOptions,
     context,
   );
-  experimentConfig.run = (
+  experimentConfig.run =
     // experiment is active or forced
-    (context.toCamelCase(experimentConfig.status) === 'active' || forcedExperiment)
+    (context.toCamelCase(experimentConfig.status) === 'active' || forcedExperiment) &&
     // experiment has resolved audiences if configured
-    && (!experimentConfig.resolvedAudiences || experimentConfig.resolvedAudiences.length)
+    (!experimentConfig.resolvedAudiences || experimentConfig.resolvedAudiences.length) &&
     // forced audience resolves if defined
-    && (!forcedAudience || experimentConfig.audiences.includes(forcedAudience))
-  );
+    (!forcedAudience || experimentConfig.audiences.includes(forcedAudience));
 
   window.hlx = window.hlx || {};
   window.hlx.experiment = experimentConfig;
@@ -403,8 +393,8 @@ export async function runExperiment(document, options, context) {
   if (!experiment) {
     return false;
   }
-  const variants = context.getMetadata('instant-experiment')
-    || context.getMetadata(`${pluginOptions.experimentsMetaTag}-variants`);
+  const variants =
+    context.getMetadata('instant-experiment') || context.getMetadata(`${pluginOptions.experimentsMetaTag}-variants`);
   let experimentConfig;
   try {
     experimentConfig = await getConfig(experiment, variants, pluginOptions, context);
@@ -456,9 +446,13 @@ export async function runExperiment(document, options, context) {
   experimentConfig.servedExperience = result || currentPath;
   if (!result) {
     // eslint-disable-next-line no-console
-    console.debug(`failed to serve variant ${window.hlx.experiment.selectedVariant}. Falling back to ${experimentConfig.variantNames[0]}.`);
+    console.debug(
+      `failed to serve variant ${window.hlx.experiment.selectedVariant}. Falling back to ${experimentConfig.variantNames[0]}.`,
+    );
   }
-  document.body.classList.add(`variant-${context.toClassName(result ? experimentConfig.selectedVariant : experimentConfig.variantNames[0])}`);
+  document.body.classList.add(
+    `variant-${context.toClassName(result ? experimentConfig.selectedVariant : experimentConfig.variantNames[0])}`,
+  );
   context.sampleRUM('experiment', {
     source: experimentConfig.id,
     target: result ? experimentConfig.selectedVariant : experimentConfig.variantNames[0],
@@ -473,10 +467,10 @@ export async function runCampaign(document, options, context) {
 
   const pluginOptions = { ...DEFAULT_OPTIONS, ...options };
   const usp = new URLSearchParams(window.location.search);
-  const campaign = (usp.has(pluginOptions.campaignsQueryParameter)
-    ? context.toClassName(usp.get(pluginOptions.campaignsQueryParameter))
-    : null)
-    || (usp.has('utm_campaign') ? context.toClassName(usp.get('utm_campaign')) : null);
+  const campaign =
+    (usp.has(pluginOptions.campaignsQueryParameter)
+      ? context.toClassName(usp.get(pluginOptions.campaignsQueryParameter))
+      : null) || (usp.has('utm_campaign') ? context.toClassName(usp.get('utm_campaign')) : null);
   if (!campaign) {
     return false;
   }
@@ -590,9 +584,11 @@ window.hlx.patchBlockConfig?.push((config) => {
   }
 
   // The current experiment does not modify the block
-  if (experiment.selectedVariant === experiment.variantNames[0]
-    || !experiment.variants[experiment.variantNames[0]].blocks
-    || !experiment.variants[experiment.variantNames[0]].blocks.includes(config.blockName)) {
+  if (
+    experiment.selectedVariant === experiment.variantNames[0] ||
+    !experiment.variants[experiment.variantNames[0]].blocks ||
+    !experiment.variants[experiment.variantNames[0]].blocks.includes(config.blockName)
+  ) {
     return config;
   }
 
@@ -627,7 +623,8 @@ window.hlx.patchBlockConfig?.push((config) => {
     } else {
       path = `/blocks/${config.blockName}`;
     }
-  } else { // Experimenting from a different branch on the same branch
+  } else {
+    // Experimenting from a different branch on the same branch
     path = `/blocks/${variant.blocks[index]}`;
   }
   if (!origin && !path) {
@@ -655,7 +652,7 @@ function adjustedRumSamplingRate(checkpoint, options, context) {
         // and reduce burden on the backend
         Math.max(pluginOptions.rumSamplingRate, MAX_SAMPLING_RATE),
       );
-      window.hlx.rum.isSelected = (window.hlx.rum.random * window.hlx.rum.weight < 1);
+      window.hlx.rum.isSelected = window.hlx.rum.random * window.hlx.rum.weight < 1;
       if (window.hlx.rum.isSelected) {
         context.sampleRUM(checkpoint, data);
       }
@@ -683,12 +680,14 @@ export async function loadLazy(document, options, context) {
     ...(options || {}),
   };
   // do not show the experimentation pill on prod domains
-  if (window.location.hostname.endsWith('.live')
-    || (typeof options.isProd === 'function' && options.isProd())
-    || (options.prodHost
-        && (options.prodHost === window.location.host
-          || options.prodHost === window.location.hostname
-          || options.prodHost === window.location.origin))) {
+  if (
+    window.location.hostname.endsWith('.live') ||
+    (typeof options.isProd === 'function' && options.isProd()) ||
+    (options.prodHost &&
+      (options.prodHost === window.location.host ||
+        options.prodHost === window.location.hostname ||
+        options.prodHost === window.location.origin))
+  ) {
     return;
   }
   // eslint-disable-next-line import/no-cycle

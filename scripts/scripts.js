@@ -42,14 +42,16 @@ export const timers = new Map();
  * @returns an array of HTMLElement nodes that match the given scope
  */
 export function getAllMetadata(scope) {
-  return [...document.head.querySelectorAll(`meta[property^="${scope}:"],meta[name^="${scope}-"]`)]
-    .reduce((res, meta) => {
-      const id = toClassName(meta.name
-        ? meta.name.substring(scope.length + 1)
-        : meta.getAttribute('property').split(':')[1]);
+  return [...document.head.querySelectorAll(`meta[property^="${scope}:"],meta[name^="${scope}-"]`)].reduce(
+    (res, meta) => {
+      const id = toClassName(
+        meta.name ? meta.name.substring(scope.length + 1) : meta.getAttribute('property').split(':')[1],
+      );
       res[id] = meta.getAttribute('content');
       return res;
-    }, {});
+    },
+    {},
+  );
 }
 
 // eslint-disable-next-line
@@ -708,9 +710,10 @@ async function loadPage() {
   };
   // eslint-disable-next-line import/no-relative-packages
   const experimentation = await import('../plugins/experimentation/src/index.js');
-  const enableExperimentation = getMetadata('experiment')
-    || Object.keys(getAllMetadata('campaign')).length
-    || Object.keys(getAllMetadata('audience')).length;
+  const enableExperimentation =
+    getMetadata('experiment') ||
+    Object.keys(getAllMetadata('campaign')).length ||
+    Object.keys(getAllMetadata('audience')).length;
   if (enableExperimentation) await experimentation.loadEager(document, { audiences: AUDIENCES }, pluginContext);
   await loadEager(document);
   await loadLazy(document);
