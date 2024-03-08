@@ -707,15 +707,17 @@ async function loadPage() {
     toClassName,
   };
   // eslint-disable-next-line import/no-relative-packages
-  const experimentation = await import('../plugins/experimentation/src/index.js');
+  const experimentation = async () => import('../plugins/experimentation/src/index.js');
   const enableExperimentation =
     getMetadata('experiment') ||
     Object.keys(getAllMetadata('campaign')).length ||
     Object.keys(getAllMetadata('audience')).length;
-  if (enableExperimentation) await experimentation.loadEager(document, { audiences: AUDIENCES }, pluginContext);
+  if (enableExperimentation)
+    await experimentation().then((e) => e.loadEager(document, { audiences: AUDIENCES }, pluginContext));
   await loadEager(document);
   await loadLazy(document);
-  if (enableExperimentation) experimentation.loadLazy(document, { audiences: AUDIENCES }, pluginContext);
+  if (enableExperimentation)
+    await experimentation().then((e) => e.loadLazy(document, { audiences: AUDIENCES }, pluginContext));
   loadRails();
   loadDelayed();
   showBrowseBackgroundGraphic();
