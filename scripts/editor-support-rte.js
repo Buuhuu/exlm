@@ -60,4 +60,9 @@ export function decorateRichtext(container = document) {
   }
 }
 
+const observer = new MutationObserver((mutations) => {
+  console.log(mutations);
+});
+observer.observe(document, { attributeFilter: [ 'data-richtext-prop' ]});
+
 decorateRichtext();
