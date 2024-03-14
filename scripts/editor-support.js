@@ -153,6 +153,12 @@ function handleEditorSelect(event) {
   }
 }
 
+function handleReload(event) {
+  console.log();
+  const current = window.location.href;
+  current.searchParams.set('experiment', 'foo-0001/challenger-1');
+}
+
 function attachEventListners(main) {
   ['aue:content-patch', 'aue:content-update', 'aue:content-add', 'aue:content-move', 'aue:content-remove'].forEach(
     (eventType) =>
@@ -164,6 +170,7 @@ function attachEventListners(main) {
   );
 
   main.addEventListener('aue:ui-select', handleEditorSelect);
+  main.addEventListener('experimentation:reload', handleReload);
 }
 
 attachEventListners(document.querySelector('main'));
