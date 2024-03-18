@@ -78,13 +78,12 @@ export async function getResolvedAudiences(applicableAudiences, options, context
  * @return Returns the path that was loaded or null if the loading failed
  */
 async function replaceInner(path, main) {
-  path = path.endsWith('/') ? `${path}index.html` : `${path}.html`;
   try {
     const resp = await fetch(path);
     if (!resp.ok) {
       // eslint-disable-next-line no-console
       console.log('error loading content:', resp);
-      return false;
+      return null;
     }
     const html = await resp.text();
     const dom = new DOMParser().parseFromString(html, 'text/html');
@@ -680,18 +679,10 @@ export async function loadLazy(document, options, context) {
     ...DEFAULT_OPTIONS,
     ...(options || {}),
   };
-  // do not show the experimentation pill on prod domains
-  if (
-    window.location.hostname.endsWith('.live') ||
-    (typeof options.isProd === 'function' && options.isProd()) ||
-    (options.prodHost &&
-      (options.prodHost === window.location.host ||
-        options.prodHost === window.location.hostname ||
-        options.prodHost === window.location.origin))
-  ) {
-    return;
+  // only show the experimentation pill on prod domains
+  if (window.location.hostname.endsWith('.page')) {
+    // eslint-disable-next-line import/no-cycle
+    const preview = await import('./preview.js');
+    preview.default(document, pluginOptions, { ...context, getResolvedAudiences });
   }
-  // eslint-disable-next-line import/no-cycle
-  const preview = await import('./preview.js');
-  preview.default(document, pluginOptions, { ...context, getResolvedAudiences });
 }
