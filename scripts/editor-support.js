@@ -153,12 +153,6 @@ function handleEditorSelect(event) {
   }
 }
 
-function handleReload(event) {
-  console.log();
-  const current = window.location.href;
-  current.searchParams.set('experiment', 'foo-0001/challenger-1');
-}
-
 function attachEventListners(main) {
   ['aue:content-patch', 'aue:content-update', 'aue:content-add', 'aue:content-move', 'aue:content-remove'].forEach(
     (eventType) =>
@@ -170,10 +164,23 @@ function attachEventListners(main) {
   );
 
   main.addEventListener('aue:ui-select', handleEditorSelect);
-  main.addEventListener('experimentation:reload', handleReload);
+}
+
+function instrumentHead(head) {
+  const metasValue = {
+    'urn:adobe:aue:config:extensions': 'https://1613036-934experimentation.adobeio-static.net/index.html'
+  };
+
+  Object.keys(metasValue).forEach((key) => {
+    const metaEntry = document.createElement('meta');
+    metaEntry.name = key;
+    metaEntry.value = metasValue[key];
+    head.appendChild(metaEntry);
+  });
 }
 
 attachEventListners(document.querySelector('main'));
+instrumentHead(document.querySelector('head'));
 
 // temporary workaround until aue:ui-edit and aue:ui-preview events become available
 // show/hide sign-up block when switching betweeen UE Edit mode and preview
