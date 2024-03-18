@@ -174,7 +174,7 @@ function instrumentHead(head) {
   Object.keys(metasValue).forEach((key) => {
     const metaEntry = document.createElement('meta');
     metaEntry.name = key;
-    metaEntry.value = metasValue[key];
+    metaEntry.content = metasValue[key];
     head.appendChild(metaEntry);
   });
 }
