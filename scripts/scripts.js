@@ -25,6 +25,7 @@ import {
 const libAnalyticsModulePromise = import('./analytics/lib-analytics.js');
 
 const LCP_BLOCKS = ['marquee']; // add your LCP blocks to the list
+const KNOW_LANGUAGES = ['en', 'de', 'es', 'fr', 'it', 'ja', 'ko', 'pt-br', 'zh-hans', 'zh-hant', 'nl', 'sv'];
 
 const AUDIENCES = {
   mobile: () => window.innerWidth < 600,
@@ -111,7 +112,7 @@ export function getPathDetails() {
   if (lang.indexOf('.') > -1) {
     lang = lang.substring(0, lang.indexOf('.'));
   }
-  if (!lang) lang = 'en'; // default to en
+  if (!lang || !KNOW_LANGUAGES.includes(lang.toLowerCase())) lang = 'en'; // default to en
   // substring before lang
   const prefix = pathname.substring(0, pathname.indexOf(`/${lang}`)) || '';
   const suffix = pathname.substring(pathname.indexOf(`/${lang}`) + lang.length + 1) || '';
