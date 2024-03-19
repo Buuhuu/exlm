@@ -363,15 +363,16 @@ async function getConfig(experiment, instantExperiment, pluginOptions, context) 
     pluginOptions,
     context,
   );
-  experimentConfig.run =
+  experimentConfig.run = (
     // experiment is active or forced
     (['active', 'on', 'true'].includes(context.toClassName(experimentConfig.status)) || forcedExperiment)
     // experiment has resolved audiences if configured
-    (!experimentConfig.resolvedAudiences || experimentConfig.resolvedAudiences.length)
+    && (!experimentConfig.resolvedAudiences || experimentConfig.resolvedAudiences.length)
     // forced audience resolves if defined
     && (!forcedAudience || experimentConfig.audiences.includes(forcedAudience))
     && (!experimentConfig.startDate || new Date(experimentConfig.startDate) <= Date.now())
-    && (!experimentConfig.endDate || new Date(experimentConfig.endDate) > Date.now());
+    && (!experimentConfig.endDate || new Date(experimentConfig.endDate) > Date.now())
+  );
 
   window.hlx = window.hlx || {};
   window.hlx.experiment = experimentConfig;
