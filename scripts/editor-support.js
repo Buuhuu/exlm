@@ -153,6 +153,10 @@ function handleEditorSelect(event) {
   }
 }
 
+function handleReloadPage(event) {
+  window.location.href = event.detail;
+}
+
 function attachEventListners(main) {
   ['aue:content-patch', 'aue:content-update', 'aue:content-add', 'aue:content-move', 'aue:content-remove'].forEach(
     (eventType) =>
@@ -164,6 +168,7 @@ function attachEventListners(main) {
   );
 
   main.addEventListener('aue:ui-select', handleEditorSelect);
+  main.addEventListener('extension:reloadPage', handleReloadPage);
 }
 
 attachEventListners(document.querySelector('main'));
