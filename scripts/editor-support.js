@@ -154,8 +154,7 @@ function handleEditorSelect(event) {
 }
 
 function handleReloadPage(event) {
-  window.location.replace(event.detail);
-  window.location.reload();
+  window.location.href = event.detail;
 }
 
 function attachEventListners(main) {
