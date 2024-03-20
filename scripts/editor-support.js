@@ -155,6 +155,7 @@ function handleEditorSelect(event) {
 
 function handleReloadPage(event) {
   window.location.replace(event.detail);
+  window.location.reload();
 }
 
 function attachEventListners(main) {
